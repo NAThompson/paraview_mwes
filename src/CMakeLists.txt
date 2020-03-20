@@ -10,8 +10,8 @@
 cmake_minimum_required(VERSION 3.8...3.15 FATAL_ERROR)
 project(ParaviewTutorial CXX)
 
-set(CMAKE_CXX_FLAGS_DEBUG="${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 find_package(VTKm REQUIRED QUIET)
+
 include_directories(/usr/local/include)
 
 add_executable(WaveletTransform WaveletTransform.cxx)

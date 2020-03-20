@@ -110,7 +110,7 @@ void KdV(int64_t N, Real dt, Real t_max)
             std::cout << "Momentum = " << p << "\n";
             return;
         }
-        if ( (j+1) % 1000*4000 == 0)
+        if ( (j+1) % 10000*4000 == 0)
         {
             write_step<Real>(u2, j+1, dx);
         }
@@ -125,7 +125,7 @@ void KdV(int64_t N, Real dt, Real t_max)
 int main(int argc, char** argv)
 {
     using Real = double;
-    int64_t N = 128;
+    int64_t N = 256;
     Real t_max = 5;
     if (argc > 1)
     {

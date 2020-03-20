@@ -411,7 +411,7 @@ $$U(x,y,0) = U_0(x,y)$$, $$V(x,y,0) = V_0(x,y)$$.
 
 ---
 
-Numerics
+## Numerics
 
 $$
 \frac{U_{i,j}^{k+1} - U_{i,j}^{k}}{\Delta t} = D_{u} \frac{U_{i+1,j}^{k} + U_{i,j+1}^{k} - 4U_{i,j}^{j} + U_{i-1,j}^{k} + U_{i,j-1}^{k} }{\Delta x^2} - U_{i,j}^{k} (V_{i,j}^{k})^{2} + F(1-U_{i,j}^{k})
@@ -423,10 +423,64 @@ $$
 
 
 
-Stability condition $$\Delta t < \Delta x^2/2$$.
+Stability condition $$\Delta t < \Delta x^2/2$$, but that leads to an incredibly expensive simulation.
+
+Perfect use case for *watching* you sim.
 
 ---
 
+## Numerics -> C++
+
+```cpp
+Eigen::MatrixXd U0(n,n);
+Eigen::MatrixXd U1(n,n);
+Eigen::MatrixXd V0(n,n);
+Eigen::MatrixXd V1(n,n);
+// ...
+for (int64_t i = 1; i < n - 1; ++i)
+{
+  for (int64_t j = 1; j < n - 1; ++j)
+  {
+    rhsU = Du*(U0(i+1,j) + U0(i,j+1) - 4*U0(i,j) + U0(i-1, j) + U0(i, j-1))/(dx*dx) - U0(i,j)*V0(i,j)*V0(i,j) + F*(1-U0(i,j));
+    rhsV = Dv*(V0(i+1,j) + V0(i,j+1) - 4*V0(i,j) + V0(i-1, j) + V0(i, j-1))/(dx*dx) + U0(i,j)*V0(i,j)*V0(i,j) - (F+k)*V0(i,j);
+    U1(i,j) = U0(i,j) + dt*rhsU;
+    V1(i,j) = V0(i,j) + dt*rhsV;
+  }
+}
+```
+
+---
+
+## VTK-m
+
+```cpp
+vtkm::cont::DataSetBuilderUniform dsb;
+vtkm::Id2 dims(n, n);
+vtkm::Vec2f_64 origin(0, 0);
+double dx = gs_params.x_max/n;
+vtkm::Vec2f_64 spacing(dx, dx);
+vtkm::cont::DataSet dataSet = dsb.Create(dims, origin, spacing);
+vtkm::cont::DataSetFieldAdd dsf;
+dsf.AddPointField(dataSet, "U", U.data(), U.size());
+dsf.AddPointField(dataSet, "V", V.data(), V.size());
+vtkm::io::writer::VTKDataSetWriter writer("gray_scott_" + std::to_string(step_index) + ".vtk");
+writer.WriteDataSet(dataSet);
+```
+
+---
+
+
+![](GrayScottRealTime.mov)
+
+---
+
+![](GrayScott.avi)
+
+---
+
+![](GrayScottWarpedByScalar.avi)
+
+---
 
 
 

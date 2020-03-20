@@ -12,27 +12,6 @@
 #include <vtkm/cont/testing/MakeTestDataSet.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
 
-/*
-{
-    "L": 64,
-    "Du": 0.2,
-    "Dv": 0.1,
-    "F": 0.01,
-    "k": 0.05,
-    "dt": 2.0,
-    "plotgap": 10,
-    "steps": 60000,
-    "noise": 0.0000001,
-    "output": "gs.bp",
-    "checkpoint": false,
-    "checkpoint_freq": 10,
-    "checkpoint_output": "gs_ckpt.bp",
-    "adios_config": "adios2-adis.xml",
-    "adios_span": false,
-    "adios_memory_selection": true,
-    "mesh_type": "image"
-}
-*/
 constexpr const struct parameters {
     double Du = 2e-5;
     double Dv = 1e-5;
@@ -42,7 +21,7 @@ constexpr const struct parameters {
     double k = 0.05;
     double F = 0.01;
     double t_max = 10.0;
-    int64_t n = 64;
+    int64_t n = 256;
 } gs_params;
 
 
@@ -64,7 +43,6 @@ void initialize_UV(Eigen::MatrixXd & U, Eigen::MatrixXd & V)
     //  "The 20 by 20 mesh point area located symmetrically about the center of the grid was then perturbed to (U = 1/2,V = 1/4)."
     //  We'll use a size 20/256 to spot check:
     int64_t l = 10*n/256.0;
-    std::cout << "l = " << l << "\n";
     for (int64_t i = n/2 - l; i < n/2 + l; ++i)
     {
         for (int64_t j = n/2 - l; j < n/2 + l; ++j)
@@ -73,15 +51,15 @@ void initialize_UV(Eigen::MatrixXd & U, Eigen::MatrixXd & V)
             V(i,j) = 0.25;
         }
     }
-    //  These conditions were then perturbed with + 1% random noise in order to break the square symmetry
+    // "These conditions were then perturbed with + 1% random noise in order to break the square symmetry"
     std::random_device rd;
     std::uniform_real_distribution dis(-1.0, 1.0);
     for (int64_t i = 0; i < n; ++i)
     {
         for (int64_t j = 0; j < n; ++j)
         {
-            //U(i,j) += gs_params.noise_level*dis(rd);
-            //V(i,j) += gs_params.noise_level*dis(rd);
+            U(i,j) += gs_params.noise_level*dis(rd);
+            V(i,j) += gs_params.noise_level*dis(rd);
         }
     }
 }
@@ -107,89 +85,104 @@ void solve()
     int64_t n = gs_params.n;
     double dx = gs_params.x_max/n;
     // Stability condition: dt < dx*dx/2:
-    //double dt = dx*dx/4;
-    double dt = 1;
+    double dt = dx*dx/4;
+    // But that takes forever to run.
+    // Instead, we have to live dangerously: (I suspect this is why D_u and D_v are taken so small in the reference)
+    dt = dx/5;
     
     Eigen::MatrixXd U0(n,n);
     Eigen::MatrixXd U1(n,n);
     Eigen::MatrixXd V0(n,n);
     Eigen::MatrixXd V1(n,n);
+    for (int64_t i = 0; i < n; ++i) {
+        for (int64_t j = 0; j < n; ++j) {
+            U1(i,j) = std::numeric_limits<double>::quiet_NaN();
+            V1(i,j) = std::numeric_limits<double>::quiet_NaN();
+        }
+    }
     initialize_UV(U0, V0);
     int64_t k = 0;
     int64_t step_max = gs_params.t_max/dt;
-    step_max = 200000;
-    std::cout << "Number of steps = " << step_max << "\n";
+    step_max = 2000000;
+    double rhsU, rhsV;
     while (k < step_max)
     {
         // "The boundary conditions are periodic."
         // 5 point Laplacian stencil under periodic BCs.
         // This gives 4 corners (i,j) = (0,0), (0, n-1), (n-1, 0), (n-1, n-1) as special cases:
         // i = 0, j = 0: 
-        double rhsU = gs_params.Du*(U0(1,0) + U0(0,1) - 4*U0(0,0) + U0(n-1, 0) + U0(0, n-1))/(dx*dx) - U0(0,0)*V0(0,0)*V0(0,0) + gs_params.F*(1-U0(0,0));
-        double rhsV = gs_params.Dv*(V0(1,0) + V0(0,1) - 4*V0(0,0) + V0(n-1, 0) + V0(0, n-1))/(dx*dx) + U0(0,0)*V0(0,0)*V0(0,0) - (gs_params.F+gs_params.k)*V0(0,0);
+        rhsU = gs_params.Du*(U0(1,0) + U0(0,1) - 4*U0(0,0) + U0(n-1, 0) + U0(0, n-1))/(dx*dx) - U0(0,0)*V0(0,0)*V0(0,0) + gs_params.F*(1-U0(0,0));
+        rhsV = gs_params.Dv*(V0(1,0) + V0(0,1) - 4*V0(0,0) + V0(n-1, 0) + V0(0, n-1))/(dx*dx) + U0(0,0)*V0(0,0)*V0(0,0) - (gs_params.F+gs_params.k)*V0(0,0);
         U1(0, 0) = U0(0, 0) + dt*rhsU;
-        V1(0, 0) = V1(0, 0) + dt*rhsV;
+        V1(0, 0) = V0(0, 0) + dt*rhsV;
+
         // i = 0, j = n-1:
         rhsU = gs_params.Du*(U0(1,n-1) + U0(0,0) - 4*U0(0,n-1) + U0(n-1, n-1) + U0(0, n-2))/(dx*dx) - U0(0,n-1)*V0(0,n-1)*V0(0,n-1) + gs_params.F*(1-U0(0,n-1));
         rhsV = gs_params.Dv*(V0(1,n-1) + V0(0,0) - 4*V0(0,n-1) + V0(n-1, n-1) + V0(0, n-2))/(dx*dx) + U0(0,n-1)*V0(0,n-1)*V0(0,n-1) - (gs_params.F+gs_params.k)*V0(0,n-1);
         U1(0,n-1) = U0(0,n-1) + dt*rhsU;
         V1(0,n-1) = V0(0,n-1) + dt*rhsV;
+
         // i = n-1, j = 0:
         rhsU = gs_params.Du*(U0(0,0) + U0(n-1,1) - 4*U0(n-1,0) + U0(n-2, 0) + U0(n-1, n-1))/(dx*dx) - U0(n-1,0)*V0(n-1,0)*V0(n-1,0) + gs_params.F*(1-U0(n-1,0));
         rhsV = gs_params.Dv*(V0(0,0) + V0(n-1,1) - 4*V0(n-1,0) + V0(n-2, 0) + V0(n-1, n-1))/(dx*dx) + U0(n-1,0)*V0(n-1,0)*V0(n-1,0) - (gs_params.F+gs_params.k)*V0(n-1,0);
-        U1(0, 0) = U0(0, 0) + dt*rhsU;
-        V1(0, 0) = V1(0, 0) + dt*rhsV;
+        U1(n-1, 0) = U0(n-1, 0) + dt*rhsU;
+        V1(n-1, 0) = V0(n-1, 0) + dt*rhsV;
+
         // i = n-1, j = n-1:
         rhsU = gs_params.Du*(U0(0,n-1) + U0(n-1,0) - 4*U0(n-1,n-1) + U0(n-2, n-1) + U0(n-1, n-2))/(dx*dx) - U0(n-1,n-1)*V0(n-1,n-1)*V0(n-1,n-1) + gs_params.F*(1-U0(n-1,n-1));
         rhsV = gs_params.Dv*(V0(0,n-1) + V0(n-1,0) - 4*V0(n-1,n-1) + V0(n-2, n-1) + V0(n-1, n-2))/(dx*dx) + U0(n-1,n-1)*V0(n-1,n-1)*V0(n-1,n-1) - (gs_params.F+gs_params.k)*V0(n-1,n-1);
-        U1(0, 0) = U0(0, 0) + dt*rhsU;
-        V1(0, 0) = V1(0, 0) + dt*rhsV;
+        U1(n-1, n-1) = U0(n-1, n-1) + dt*rhsU;
+        V1(n-1, n-1) = V0(n-1, n-1) + dt*rhsV;
+
         // And 4 sides as special cases:
         // i = 0:
         for (int64_t j = 1; j < n - 1; ++j)
         {
             rhsU = gs_params.Du*(U0(1,j) + U0(0,j+1) - 4*U0(0,j) + U0(n-1, j) + U0(0, j-1))/(dx*dx) - U0(0,j)*V0(0,j)*V0(0,j) + gs_params.F*(1-U0(0,j));
-            U1(0,j) = U0(0,j) + dt*rhsU;
             rhsV = gs_params.Dv*(V0(1,j) + V0(0,j+1) - 4*V0(0,j) + V0(n-1, j) + V0(0, j-1))/(dx*dx) + U0(0,j)*V0(0,j)*V0(0,j) - (gs_params.F+gs_params.k)*V0(0,j);
+            U1(0,j) = U0(0,j) + dt*rhsU;
             V1(0,j) = V0(0,j) + dt*rhsV;
         }
         // i = n-1:
         for (int64_t j = 1; j < n - 1; ++j)
         {
             rhsU = gs_params.Du*(U0(0,j) + U0(n-1,j+1) - 4*U0(n-1,j) + U0(n-2, j) + U0(n-1, j-1))/(dx*dx) - U0(n-1,j)*V0(n-1,j)*V0(n-1,j) + gs_params.F*(1-U0(n-1,j));
-            U1(n-1,j) = U0(n-1,j) + dt*rhsU;
             rhsV = gs_params.Dv*(V0(0,j) + V0(n-1,j+1) - 4*V0(n-1,j) + V0(n-2, j) + V0(n-1, j-1))/(dx*dx) + U0(n-1,j)*V0(n-1,j)*V0(n-1,j) - (gs_params.F+gs_params.k)*V0(n-1,j);
+            U1(n-1,j) = U0(n-1,j) + dt*rhsU;
             V1(n-1,j) = V0(n-1,j) + dt*rhsV;
         }
         // j = 0:
         for (int64_t i = 1; i < n - 1; ++i)
         {
             rhsU = gs_params.Du*(U0(i+1,0) + U0(i,1) - 4*U0(i,0) + U0(i-1, 0) + U0(i, n-1))/(dx*dx) - U0(i,0)*V0(i,0)*V0(i,0) + gs_params.F*(1-U0(i,0));
-            U1(i,0) = U0(i,0) + dt*rhsU;
             rhsV = gs_params.Dv*(V0(i+1,0) + V0(i,1) - 4*V0(i,0) + V0(i-1, 0) + V0(i, n-1))/(dx*dx) + U0(i,0)*V0(i,0)*V0(i,0) - (gs_params.F+gs_params.k)*V0(i,0);
+            U1(i,0) = U0(i,0) + dt*rhsU;
             V1(i,0) = V0(i,0) + dt*rhsV;
         }
         // j = n-1:
         for (int64_t i = 1; i < n - 1; ++i)
         {
             rhsU = gs_params.Du*(U0(i+1,n-1) + U0(i,0) - 4*U0(i,n-1) + U0(i-1, n-1) + U0(i, n-2))/(dx*dx) - U0(i,n-1)*V0(i,n-1)*V0(i,n-1) + gs_params.F*(1-U0(i,n-1));
-            U1(i,n-1) = U0(i,n-1) + dt*rhsU;
             rhsV = gs_params.Dv*(V0(i+1,n-1) + V0(i,0) - 4*V0(i,n-1) + V0(i-1, n-1) + V0(i, n-2))/(dx*dx) + U0(i,n-1)*V0(i,n-1)*V0(i,n-1) - (gs_params.F+gs_params.k)*V0(i,n-1);
+            U1(i,n-1) = U0(i,n-1) + dt*rhsU;
             V1(i,n-1) = V0(i,n-1) + dt*rhsV;                
         }
         
-        // And now the interior:     
+        // And now the interior:
+        // This is a great target for an openmp parallel for, but I don't want to make this have any more dependencies than it already has!
+        //#pragma omp parallel for
         for (int64_t i = 1; i < n - 1; ++i)
         {
             for (int64_t j = 1; j < n - 1; ++j)
             {
                 rhsU = gs_params.Du*(U0(i+1,j) + U0(i,j+1) - 4*U0(i,j) + U0(i-1, j) + U0(i, j-1))/(dx*dx) - U0(i,j)*V0(i,j)*V0(i,j) + gs_params.F*(1-U0(i,j));
-                U1(i,j) = U0(i,j) + dt*rhsU;
                 rhsV = gs_params.Dv*(V0(i+1,j) + V0(i,j+1) - 4*V0(i,j) + V0(i-1, j) + V0(i, j-1))/(dx*dx) + U0(i,j)*V0(i,j)*V0(i,j) - (gs_params.F+gs_params.k)*V0(i,j);
+                U1(i,j) = U0(i,j) + dt*rhsU;
                 V1(i,j) = V0(i,j) + dt*rhsV;                
             }
         }
-        int64_t step_skip = 1;
+
+        int64_t step_skip = 5000;
         if (k % step_skip == 0)
         {
             write_data(U0, V0, k);
@@ -203,7 +196,5 @@ void solve()
 
 int main(int argc, char** argv)
 {
-    std::cout << gs_params.Du << "\n";
     solve();
-    
 }
