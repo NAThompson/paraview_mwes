@@ -24,17 +24,12 @@ void write_1d_unstructured(Eigen::VectorXd const & y, std::vector<double> const 
 {
     vtkm::cont::DataSetBuilderExplicitIterative dsb;
     std::vector<vtkm::Id> ids;
-    
-    std::vector<vtkm::Vec3f_64> coords(nodes.size());
-    for (size_t i = 0; i < nodes.size(); ++i)
-    {
+    for (size_t i = 0; i < nodes.size(); ++i) {
         vtkm::Id pid = dsb.AddPoint({nodes[i], 0.0, 0.0});
         ids.push_back(pid);
     }
-    
     dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
     vtkm::cont::DataSet dataSet;
-    
     dataSet = dsb.Create();
     vtkm::cont::DataSetFieldAdd dsf;
     dsf.AddPointField(dataSet, "y", y.data(), y.size());
@@ -101,9 +96,11 @@ void fredholm()
     Eigen::VectorXd y = M.fullPivLu().solve(f);
     
     double relative_error = (M*y - f).norm() / f.norm(); // norm() is L2 norm
-    std::cout << "The relative error is " << relative_error << std::endl;
+    if (relative_error > std::sqrt(std::numeric_limits<double>::epsilon()))
+    {
+        throw std::logic_error("Failed to solve linear system.");   
+    }
     // The values of the y vector gives the solution at Gaussian quadrature nodes.
-    
     // To validate graphically, take lambda -> 0 and replace y by f:
     write_1d_unstructured(y, nodes);
 }

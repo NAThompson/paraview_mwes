@@ -8,9 +8,9 @@
 ##  PURPOSE.  See the above copyright notice for more information.
 ##============================================================================
 cmake_minimum_required(VERSION 3.8...3.15 FATAL_ERROR)
-project(WaveletTransform CXX)
+project(ParaviewTutorial CXX)
 
-
+set(CMAKE_CXX_FLAGS_DEBUG="${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
 find_package(VTKm REQUIRED QUIET)
 include_directories(/usr/local/include)
 
@@ -33,4 +33,8 @@ set_property(TARGET Fredholm PROPERTY CXX_STANDARD 17)
 add_executable(EulerSpiral EulerSpiral.cxx)
 target_link_libraries(EulerSpiral PRIVATE vtkm_filter)
 set_property(TARGET EulerSpiral PROPERTY CXX_STANDARD 17)
+
+add_executable(GrayScott GrayScott.cxx)
+target_link_libraries(GrayScott PRIVATE vtkm_filter)
+set_property(TARGET GrayScott PROPERTY CXX_STANDARD 17)
 

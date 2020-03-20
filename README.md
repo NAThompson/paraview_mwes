@@ -1,12 +1,18 @@
-## Using Paraview
+## Intro to the Paraview Ecosystem
 
 ---
 
-## What is it?
+## What is Paraview?
 
 A 3D graphics GUI!
 
 (But fewer dimensions ok too!)
+
+---
+
+## What is the ecosystem?
+
+The set of programming tools built around Paraview to achieve scientific goals: VTK-m, ADIS, ADIOS.
 
 ---
 
@@ -52,6 +58,10 @@ Idiom: Take a *source*, and apply a *filter*, export to paper.
 
 ---
 
+![](CurvatureOfCone.png)
+
+---
+
 ## That was cheating.
 
 Yes, we used canned data packaged with the software.
@@ -77,6 +87,10 @@ r, linear, quadratic_b_spline, cubic_b_spline, quintic_b_spline, cubic_hermite, 
 
 ![](CSVWorkflow.mov)
 
+
+---
+
+![35%](InterpolatorConvergence.png)
 
 ---
 
@@ -109,6 +123,10 @@ LOOKUP_TABLE default
 
 ---
 
+![45%](KdVState.png)
+
+---
+
 ## How about a graph that evolves in time?
 
 Make a series of `.vtk` files, and then label them with an increasing index `foo_1.vtk`, `foo_3.vtk`, `foo_5.vtk`.
@@ -120,7 +138,7 @@ Then Paraview knows that this is a dataset that evolves in time.
 ## Korteweg-de Vries equation
 
 $$
-\partial_t \phi + \delta^2\partial_x^3\phi  + \phi \partial_x \phi = 0, \quad \phi(x, 0) = \cos(\pi x)
+\partial_t u + \delta^2\partial_x^3 u  + u \partial_x u = 0, \quad u(x, 0) = \cos(\pi x)
 $$
 
 Let's use this as an example of how to watch the evolution of a simulation in Paraview.
@@ -151,7 +169,7 @@ where $$\delta$$ is an adjustable parameter, here chosen as 0.022.
 Given a wavelet transform
 
 $$
-\mathcal{W}[f](s, t) := \frac{1}{\sqrt{|s|}} \int_{-\infty}^{\infty} f(x) \psi\left( \frac{x-t}{s}  \right)^{*} \, \mathrm{d}x
+\mathcal{W}[f](s,t) := \frac{1}{\sqrt{|s|}} \int_{-\infty}^{\infty} f(x) \psi\left( \frac{x-t}{s}  \right)^{*} \, \mathrm{d}x
 $$
 
 let's compute a *scalogram*, a graph of $$z = |\mathcal{W}[f](s, t)|^2$$.
@@ -185,6 +203,27 @@ LOOKUP_TABLE default
 ![](Scalogram.mov)
 
 ---
+
+![40%](log_of_scalogram.png)
+
+---
+
+## Warp by Scalar
+
+2D image with a field on it can be represented by a colortable, or by a surface.
+
+Let's see how to create a surface.
+
+---
+
+![](WarpByScalar.mov)
+
+---
+
+![100%](warp_by_scalar.png)
+
+---
+
 
 ## Compound datasets
 
@@ -248,24 +287,49 @@ This is a dense linear system $$My = f$$, which gives the values of $$y$$ on an 
 
 ---
 
-## VTK-m (USE POLYLINE!)
+## Numerics -> C++
 
 ```cpp
-std::vector<vtkm::Vec3f_64> coords(nodes.size());
-for (size_t i = 0; i < nodes.size(); ++i)
-{
-    coords[i] = {nodes[i], 0.0, 0.0};
+double lambda = 2.5;
+auto gauss_data = boost::math::quadrature::gauss<double, 256>();
+std::vector<double> nodes = ... ;
+std::vector<double> weights = ... ;
+Eigen::VectorXd f(nodes.size());
+for (size_t i = 0; i < nodes.size(); ++i) {
+  f[i] = rhs(nodes[i]);
 }
-// Each line connects two consecutive vertices
-std::vector<vtkm::Id> conn;
-for (int i = 0; i < nodes.size() - 1; i++)
-{
-    conn.push_back(i);
-    conn.push_back(i + 1);
+
+Eigen::MatrixXd M(nodes.size(), nodes.size());
+for (size_t i = 0; i < nodes.size(); ++i) {
+  for (size_t j = 0; j < nodes.size(); ++j) {
+    if (i == j) {
+      M(i,j) = 1;   
+    }
+    else {
+      M(i,j) = -lambda*(nodes[i] - nodes[j])*weights[j];   
+    }
+  }
 }
+// Solution y at Gauss nodes:
+Eigen::VectorXd y = M.fullPivLu().solve(f);
+
+```
+
+---
+
+
+## VTK-m
+
+```cpp
+vtkm::cont::DataSetBuilderExplicitIterative dsb;
+std::vector<vtkm::Id> ids;
+for (size_t i = 0; i < nodes.size(); ++i) {
+    vtkm::Id pid = dsb.AddPoint({nodes[i], 0.0, 0.0});
+    ids.push_back(pid);
+}
+dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
 vtkm::cont::DataSet dataSet;
-vtkm::cont::DataSetBuilderExplicit dsb;
-dataSet = dsb.Create(coords, vtkm::CellShapeTagLine(), 2, conn, "coordinates");
+dataSet = dsb.Create();
 vtkm::cont::DataSetFieldAdd dsf;
 dsf.AddPointField(dataSet, "y", y.data(), y.size());
 vtkm::io::writer::VTKDataSetWriter writer("fredholm.vtk");
@@ -274,7 +338,15 @@ writer.WriteDataSet(dataSet);
 
 ---
 
-## Spirals
+![](Fredholm.mov)
+
+---
+
+![35%](fredholm.png)
+
+---
+
+## Can't stop the fun
 
 Let's build an Euler spiral:
 
@@ -285,8 +357,6 @@ $$
 ---
 
 ## Numerics
-
-Need to compute some quadratures
 
 ```cpp
 #include <boost/math/quadrature/tanh_sinh.hpp>
@@ -300,15 +370,12 @@ double y = integrator.integrate(y_coord, 0.0, t);
 
 ---
 
-## Dataset
-
-This time, no field data, just a path:
+## VTK-m: No field data, just a path:
 
 ```cpp
 vtkm::cont::DataSetBuilderExplicitIterative dsb;
 std::vector<vtkm::Id> ids;
-for (size_t i = 0; i < spiral_data.size(); ++i)
-{
+for (size_t i = 0; i < spiral_data.size(); ++i) {
   auto point = spiral_data[i];
   vtkm::Id pid = dsb.AddPoint({point[0], point[1], 0.0});
   ids.push_back(pid);
@@ -320,6 +387,53 @@ writer.WriteDataSet(dataSet);
 ```
 
 ---
+
+![](EulerSpiral.mov)
+
+---
+
+![45%](euler_spiral.png)
+
+---
+
+## 2D video: The [Gray-Scott](https://arxiv.org/pdf/patt-sol/9304003.pdf) Initial Value Problem
+
+$$
+\partial_t U = D_{u}\nabla^2 U - UV^2 + F(1-U)
+$$
+$$
+\partial_t V = D_{v}\nabla^2V + UV^2 - (F+k)V
+$$
+
+Subject to
+
+$$U(x,y,0) = U_0(x,y)$$, $$V(x,y,0) = V_0(x,y)$$.
+
+---
+
+Numerics
+
+$$
+\frac{U_{i,j}^{k+1} - U_{i,j}^{k}}{\Delta t} = D_{u} \frac{U_{i+1,j}^{k} + U_{i,j+1}^{k} - 4U_{i,j}^{j} + U_{i-1,j}^{k} + U_{i,j-1}^{k} }{\Delta x^2} - U_{i,j}^{k} (V_{i,j}^{k})^{2} + F(1-U_{i,j}^{k})
+$$
+
+$$
+\frac{V_{i,j}^{k+1} - V_{i,j}^{k}}{\Delta t} = D_{v} \frac{V_{i+1,j}^{k} + V_{i,j+1}^{k} - 4V_{i,j}^{j} + V_{i-1,j}^{k} + V_{i,j-1}^{k} }{\Delta x^2} + U_{i,j}^{k} (V_{i,j}^{k})^{2} - (F+k)V_{i,j}^{k}
+$$
+
+
+
+Stability condition $$\Delta t < \Delta x^2/2$$.
+
+---
+
+
+
+
+
+
+
+
 
 
 

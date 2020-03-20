@@ -47,7 +47,7 @@ void build_euler_spiral(int samples, double t_max)
         {
             double x = integrator.integrate(x_coord, 0.0, std::abs(t));
             double y = integrator.integrate(y_coord, 0.0, std::abs(t));
-            if (L< 0)
+            if (t < 0)
             {
                 spiral_data[i] = {-x, -y};   
             }

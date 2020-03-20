@@ -20,8 +20,9 @@ vtkm::cont::DataSet scalogram_log_s_dataset(double log_s_min, double log_s_max, 
 
     vtkm::cont::DataSet dataSet = dsb.Create(dims, origin, spacing);
     vtkm::cont::DataSetFieldAdd dsf;
-    vtkm::Id nVerts = s_samples*s_samples;
-    std::vector<double> pointvar(nVerts);
+    vtkm::Id num_pixels = s_samples*s_samples;
+    std::vector<double> scalogram(num_pixels);
+    std::vector<double> wavelet_transform(num_pixels);
     
     auto f = [](double x)
     {
@@ -40,16 +41,18 @@ vtkm::cont::DataSet scalogram_log_s_dataset(double log_s_min, double log_s_max, 
         double log_s = log_s_min + y*dlogs;
         double t = t_min + x*dt;
         auto z = Wf(std::pow(10, log_s), t);
-        pointvar[idx] = z*z;
+        scalogram[idx] = z*z;
+        wavelet_transform[idx] = z;
         idx++;
       }
     } 
     auto end = std::chrono::steady_clock::now();
-    double pixels_per_second = double(pointvar.size())/std::chrono::duration_cast<std::chrono::seconds>(end - start).count() ;
-    std::cout << "computed " << pointvar.size() << " pixels in " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << " seconds\n";
+    double pixels_per_second = double(scalogram.size())/std::chrono::duration_cast<std::chrono::seconds>(end - start).count() ;
+    std::cout << "computed " << scalogram.size() << " pixels in " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << " seconds\n";
     std::cout << " or " << pixels_per_second << " pixels per second.\n";
     
-    dsf.AddPointField(dataSet, "|W[f](s,t)|^2", pointvar.data(), pointvar.size());
+    dsf.AddPointField(dataSet, "|W[f](s,t)|^2", scalogram.data(), scalogram.size());
+    dsf.AddPointField(dataSet, "W[f](s,t)", wavelet_transform.data(), wavelet_transform.size());
     return dataSet;
 }
 
@@ -58,6 +61,6 @@ int main(int argc, char* argv[])
     vtkm::cont::Initialize(argc, argv, vtkm::cont::InitializeOptions::Strict);
     vtkm::cont::DataSet input = scalogram_log_s_dataset(-4, 0, -2.0, 2.0, 512);
     vtkm::io::writer::VTKDataSetWriter writer("scalogram_log_s.vtk");
-    writer.WriteDataSet(input);
+    writer.WriteDataSet(input);   
     return 0;
 }
