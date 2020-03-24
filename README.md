@@ -525,6 +525,48 @@ Start easy with data provided by Paraview.
 
 ---
 
+Further into the VTK-m data model: Rectilinear grids
+
+![75%](random_rectilinear.png)
+
+---
+
+## VTK-m
+
+```cpp
+std::random_device rd;
+std::uniform_real_distribution<double> dis(0.0, 1.0/samples);
+std::vector<double> x(samples);
+std::vector<double> y(samples);
+std::vector<double> z(samples);
+for (size_t i = 0; i < samples; ++i)
+{
+  x[i] = dis(rd);
+  y[i] = dis(rd);
+  z[i] = 0;
+}
+std::sort(x.begin(), x.end());
+std::sort(y.begin(), y.end());
+
+vtkm::cont::DataSetBuilderRectilinear dsb;
+vtkm::cont::DataSet ds = dsb.Create(x, y, z);
+vtkm::io::writer::VTKDataSetWriter writer("random_rectilinear.vtk");
+writer.WriteDataSet(ds);
+```
+
+---
+
+## Padua Points
+
+The Padua points are the uniform of two Chebyshev grids.
+
+VTK-m data model: `Rectilinear` + `PartitionedDataSet`.
+
+
+
+
+
+
 
 
 
