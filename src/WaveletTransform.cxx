@@ -26,7 +26,10 @@ vtkm::cont::DataSet scalogram_log_s_dataset(double log_s_min, double log_s_max, 
     
     auto f = [](double x)
     {
-        return std::cos(10*x)*std::exp(-abs(x));
+        if (x == 0) {
+          return 0.0; 
+        }
+        return std::sin(1.0/x);
     };
     auto Wf = boost::math::quadrature::daubechies_wavelet_transform<decltype(f), double, 8>(f);
 
@@ -59,7 +62,7 @@ vtkm::cont::DataSet scalogram_log_s_dataset(double log_s_min, double log_s_max, 
 int main(int argc, char* argv[])
 {
     vtkm::cont::Initialize(argc, argv, vtkm::cont::InitializeOptions::Strict);
-    vtkm::cont::DataSet input = scalogram_log_s_dataset(-4, 0, -2.0, 2.0, 512);
+    vtkm::cont::DataSet input = scalogram_log_s_dataset(-1, 2, -5.0, 5.0, 512);
     vtkm::io::writer::VTKDataSetWriter writer("scalogram_log_s.vtk");
     writer.WriteDataSet(input);   
     return 0;

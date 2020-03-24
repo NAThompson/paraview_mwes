@@ -38,3 +38,10 @@ add_executable(GrayScott GrayScott.cxx)
 target_link_libraries(GrayScott PRIVATE vtkm_filter)
 set_property(TARGET GrayScott PROPERTY CXX_STANDARD 17)
 
+add_executable(ScatteredData ScatteredData.cxx)
+target_link_libraries(ScatteredData PRIVATE vtkm_filter)
+set_property(TARGET ScatteredData PROPERTY CXX_STANDARD 17)
+
+add_executable(Hydrogen Hydrogen.cxx)
+target_link_libraries(Hydrogen PRIVATE vtkm_filter)
+set_property(TARGET Hydrogen PROPERTY CXX_STANDARD 17)

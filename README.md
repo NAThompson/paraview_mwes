@@ -482,6 +482,52 @@ writer.WriteDataSet(dataSet);
 
 ---
 
+## Onto 3D: A Scatterplot
+
+Very simple VTK-m as no connectivity info is needed:
+
+```cpp
+std::random_device rd;
+std::normal_distribution<double> dis(0.0, 1.0);
+std::array<double, 3> center{0.0, 0.0, 0.0};
+vtkm::cont::DataSetBuilderExplicitIterative dsb;
+for (size_t i = 0; i < 500; ++i)
+{
+    double x = center[0] + dis(rd);
+    double y = center[1] + dis(rd);
+    double z = center[2] + dis(rd);
+    dsb.AddPoint({x, y, z});
+}
+
+vtkm::cont::DataSet dataSet = dsb.Create();
+vtkm::io::writer::VTKDataSetWriter writer("scattered.vtk");
+writer.WriteDataSet(dataSet);
+```
+
+---
+
+![](ScatterPlot.mov)
+
+---
+
+![](ScatterPlot.png)
+
+---
+
+## 3D Volume Rendering
+
+Start easy with data provided by Paraview.
+
+
+---
+
+![34%](VolumeRenderingWavelet.mov)
+
+---
+
+
+
+
 
 
 
