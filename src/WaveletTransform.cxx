@@ -1,6 +1,5 @@
 #include <chrono>
 #include <complex>
-#include <vtkm/cont/Initialize.h>
 #include <vtkm/cont/DataSetBuilderUniform.h>
 #include <vtkm/cont/DataSetFieldAdd.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
@@ -61,7 +60,6 @@ vtkm::cont::DataSet scalogram_log_s_dataset(double log_s_min, double log_s_max, 
 
 int main(int argc, char* argv[])
 {
-    vtkm::cont::Initialize(argc, argv, vtkm::cont::InitializeOptions::Strict);
     vtkm::cont::DataSet input = scalogram_log_s_dataset(-1, 2, -5.0, 5.0, 512);
     vtkm::io::writer::VTKDataSetWriter writer("scalogram_log_s.vtk");
     writer.WriteDataSet(input);   

@@ -8,7 +8,6 @@
 #include <iostream>
 #include <random>
 #include <Eigen/Dense>
-#include <vtkm/cont/Initialize.h>
 #include <vtkm/cont/testing/MakeTestDataSet.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
 

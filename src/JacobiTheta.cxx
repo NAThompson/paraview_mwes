@@ -1,6 +1,5 @@
 #include <chrono>
 #include <complex>
-#include <vtkm/cont/Initialize.h>
 #include <vtkm/cont/testing/MakeTestDataSet.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
 
@@ -75,7 +74,6 @@ vtkm::cont::DataSet jacobi_theta_image_dataset(double s_min, double s_max, doubl
 
 int main(int argc, char* argv[])
 {
-    vtkm::cont::Initialize(argc, argv, vtkm::cont::InitializeOptions::Strict);
     vtkm::cont::DataSet input = jacobi_theta_image_dataset(-3, 3, -3, 3, 8);
     vtkm::io::writer::VTKDataSetWriter writer("jacobi_theta_image.vtk");
     writer.WriteDataSet(input);

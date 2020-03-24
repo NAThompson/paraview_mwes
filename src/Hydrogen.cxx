@@ -5,7 +5,6 @@
 #include <boost/math/special_functions/laguerre.hpp>
 #include <boost/math/constants/constants.hpp>
 
-#include <vtkm/cont/Initialize.h>
 #include <vtkm/cont/DataSetBuilderExplicit.h>
 #include <vtkm/cont/DataSetFieldAdd.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
@@ -37,6 +36,7 @@ void write_dataset(int64_t n, int64_t l, int64_t m, int64_t cbrt_samples)
     double dtheta = boost::math::constants::pi<double>()/cbrt_samples;
     double dphi = boost::math::constants::two_pi<double>()/cbrt_samples;
     int64_t idx = 0;
+    // TODO: Use vktm::cont::CoordinateSystem to do this in spherical coordinates directly.
     for (int64_t i = 0; i < cbrt_samples; ++i)
     {
         double r = (i+1)*dr;
