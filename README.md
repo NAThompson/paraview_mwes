@@ -558,14 +558,79 @@ writer.WriteDataSet(ds);
 
 ## Padua Points
 
-The Padua points are the uniform of two Chebyshev grids.
+The Padua points are the union of two Chebyshev grids.
 
-VTK-m data model: `Rectilinear` + `PartitionedDataSet`.
+Chebyshev nodes:
+
+$$
+C_{n+1} := \{\cos(j\pi/n), j=0,\ldots n-1\}
+$$
+
+---
+
+## Padua points
+
+$$
+\mathrm{Pad}_{n} := (C_{n+1}^{\mathrm{odd}} \times C_{n+1}^{\mathrm{even}}) \cup (C_{n+1}^{\mathrm{even}} \times C_{n+1}^{\mathrm{odd}})
+$$
+
+All points lie on the Lissajous curve 
+
+$$g(t) := (-\cos((n+1)t), -\cos(nt)), t \in [0, \pi].$$
+
+---
+
+## VTK-m data model
+
+Two `Rectilinear` grids; perfect use case for `PartitionedDataSet`.
+
+---
+
+## VTK-m
+
+```cpp
+vtkm::cont::DataSetBuilderRectilinear dsb;
+
+std::vector<double> x1((n+1)/2, std::numeric_limits<double>::quiet_NaN());
+std::vector<double> y1((n+2)/2, std::numeric_limits<double>::quiet_NaN());
+std::vector<double> z1(1, 0);
+      
+std::vector<double> x2((n+2)/2, std::numeric_limits<double>::quiet_NaN());
+std::vector<double> y2((n+1)/2, std::numeric_limits<double>::quiet_NaN());
+std::vector<double> z2(1, 0);
+// initialize with Padua points . . .
+vtkm::cont::DataSet ds1 = dsb.Create(x1, y1, z1);
+vtkm::cont::DataSet ds2 = dsb.Create(x2, y2, z2);
+vtkm::cont::PartitionedDataSet pds;
+pds.AppendPartitions({ds1, ds2});
+for (int i = 0; i < pds.GetNumberOfPartitions(); ++i)
+{
+  auto & p = pds.GetPartition(i);
+  vtkm::io::writer::VTKDataSetWriter writer("padua_" + std::to_string(i+1) + ".vtk");
+  writer.WriteDataSet(p);
+}
+              
+```
+
+---
+
+![100%](padua.png)
+
+---
+
+## Field associations: Staggered grids
+
+In fluid dynamics, it is common to store pressure as a cell variable, and velocity at a point variable.
+
+Hence we have *field associations* in VTK-m.
+
+```
+vtkm::cont::Field::Association::POINTS
+vtkm::cont::Field::Association::CELL_SET
+```
 
 
-
-
-
+---
 
 
 

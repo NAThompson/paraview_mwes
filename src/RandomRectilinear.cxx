@@ -8,23 +8,6 @@
 #include <vtkm/cont/DataSetBuilderRectilinear.h>
 #include <vtkm/io/writer/VTKDataSetWriter.h>
 
-
-vtkm::cont::DataSet lissajous(int n)
-{
-    using std::cos;
-    vtkm::cont::DataSetBuilderExplicitIterative dsb;
-    std::vector<vtkm::Id> ids;
-    int samples = 512;
-    for (size_t i = 0; i < samples; ++i)
-    {
-        double t = double(i)/double(samples);
-        vtkm::Id pid = dsb.AddPoint({-cos(M_PI*(n+1)*t), -cos(M_PI*n*t), -cos(M_PI*(n+2)*t)});
-        ids.push_back(pid);
-    }
-    dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
-    return dsb.Create();
-}
-
 void random_rectilinear(int samples)
 {
     // Padua points, first family:
@@ -54,9 +37,4 @@ int main(int argc, char** argv)
 {
     int samples = 8;
     random_rectilinear(samples);
-
-    // Now the Lissajous curve:
-    vtkm::io::writer::VTKDataSetWriter writer("lissajous.vtk");
-    writer.WriteDataSet(lissajous(7));
-
 }

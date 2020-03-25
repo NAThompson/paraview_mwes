@@ -45,3 +45,15 @@ set_property(TARGET ScatteredData PROPERTY CXX_STANDARD 17)
 add_executable(Hydrogen Hydrogen.cxx)
 target_link_libraries(Hydrogen PRIVATE vtkm_filter)
 set_property(TARGET Hydrogen PROPERTY CXX_STANDARD 17)
+
+add_executable(PaduaPoints PaduaPoints.cxx)
+target_link_libraries(PaduaPoints PRIVATE vtkm_filter)
+set_property(TARGET PaduaPoints PROPERTY CXX_STANDARD 17)
+
+add_executable(LissajousKnot LissajousKnot.cxx)
+target_link_libraries(LissajousKnot PRIVATE vtkm_filter)
+set_property(TARGET LissajousKnot PROPERTY CXX_STANDARD 17)
+
+add_executable(RandomRectilinear RandomRectilinear.cxx)
+target_link_libraries(RandomRectilinear PRIVATE vtkm_filter)
+set_property(TARGET RandomRectilinear PROPERTY CXX_STANDARD 17)
