@@ -12,7 +12,7 @@ A 3D graphics GUI!
 
 ## What is the ecosystem?
 
-The set of programming tools built around Paraview to achieve scientific goals: VTK-m, ADIS, ADIOS.
+The set of programming tools built around Paraview to achieve scientific goals: VTK-m, Fides, ADIOS.
 
 ---
 
@@ -49,7 +49,7 @@ paraview/build$ ./bin/paraview
 
 ## MWE: Compute Gaussian curvature
 
-Idiom: Take a *source*, and apply a *filter*, export to paper.
+Idiom: Take a *source*, and apply a *filter*, create a render.
 
 ---
 
