@@ -54,11 +54,11 @@ Idiom: Take a *source*, and apply a *filter*, create a render.
 ---
 
 
-![](CurvatureWorkflow.mov)
+![](figures/CurvatureWorkflow.mov)
 
 ---
 
-![](CurvatureOfCone.png)
+![](figures/CurvatureOfCone.png)
 
 ---
 
@@ -85,12 +85,12 @@ r, linear, quadratic_b_spline, cubic_b_spline, quintic_b_spline, cubic_hermite, 
 
 ---
 
-![](CSVWorkflow.mov)
+![](figures/CSVWorkflow.mov)
 
 
 ---
 
-![35%](InterpolatorConvergence.png)
+![35%](figures/InterpolatorConvergence.png)
 
 ---
 
@@ -119,11 +119,11 @@ LOOKUP_TABLE default
 
 ---
 
-![](1dgraph.mov)
+![](figures/1dgraph.mov)
 
 ---
 
-![45%](KdVState.png)
+![45%](figures/KdVState.png)
 
 ---
 
@@ -155,11 +155,11 @@ where $$\delta$$ is an adjustable parameter, here chosen as 0.022.
 
 ---
 
-![](kdv_simulation.mov)
+![](figures/kdv_simulation.mov)
 
 ---
 
-![](kdv.avi)
+![](figures/kdv.avi)
 
 ---
 
@@ -200,11 +200,11 @@ LOOKUP_TABLE default
 ---
 
 
-![](Scalogram.mov)
+![](figures/Scalogram.mov)
 
 ---
 
-![40%](log_of_scalogram.png)
+![40%](figures/log_of_scalogram.png)
 
 ---
 
@@ -216,11 +216,11 @@ Let's see how to create a surface.
 
 ---
 
-![](WarpByScalar.mov)
+![](figures/WarpByScalar.mov)
 
 ---
 
-![100%](warp_by_scalar.png)
+![100%](figures/warp_by_scalar.png)
 
 ---
 
@@ -251,11 +251,11 @@ dsf.AddPointField(dataSet, "Im(z)", imag_part.data(), imag_part.size());
 
 ---
 
-![](jacobi_theta_phase.mov)
+![](figures/jacobi_theta_phase.mov)
 
 ---
 
-![80%](jacobi_theta_phase.png)
+![80%](figures/jacobi_theta_phase.png)
 
 ---
 
@@ -338,11 +338,11 @@ writer.WriteDataSet(dataSet);
 
 ---
 
-![](Fredholm.mov)
+![](figures/Fredholm.mov)
 
 ---
 
-![35%](fredholm.png)
+![35%](figures/fredholm.png)
 
 ---
 
@@ -388,11 +388,11 @@ writer.WriteDataSet(dataSet);
 
 ---
 
-![](EulerSpiral.mov)
+![](figures/EulerSpiral.mov)
 
 ---
 
-![45%](euler_spiral.png)
+![45%](figures/euler_spiral.png)
 
 ---
 
@@ -470,15 +470,15 @@ writer.WriteDataSet(dataSet);
 ---
 
 
-![](GrayScottRealTime.mov)
+![](figures/GrayScottRealTime.mov)
 
 ---
 
-![](GrayScott.avi)
+![](figures/GrayScott.avi)
 
 ---
 
-![](GrayScottWarpedByScalar.avi)
+![](figures/GrayScottWarpedByScalar.avi)
 
 ---
 
@@ -506,11 +506,11 @@ writer.WriteDataSet(dataSet);
 
 ---
 
-![](ScatterPlot.mov)
+![](figures/ScatterPlot.mov)
 
 ---
 
-![](ScatterPlot.png)
+![](figures/ScatterPlot.png)
 
 ---
 
@@ -521,13 +521,13 @@ Start easy with data provided by Paraview.
 
 ---
 
-![34%](VolumeRenderingWavelet.mov)
+![34%](figures/VolumeRenderingWavelet.mov)
 
 ---
 
 Further into the VTK-m data model: Rectilinear grids
 
-![75%](random_rectilinear.png)
+![75%](figures/random_rectilinear.png)
 
 ---
 
@@ -614,7 +614,7 @@ for (int i = 0; i < pds.GetNumberOfPartitions(); ++i)
 
 ---
 
-![100%](padua.png)
+![100%](figures/padua.png)
 
 ---
 
@@ -736,4 +736,6 @@ File info:
 ## NOTES:
 
 - To get a png to render in paraview, turn of "Map Scalars"
+
+---
 
