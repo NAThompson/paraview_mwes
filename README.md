@@ -739,3 +739,6 @@ File info:
 
 ---
 
+## Fermi surface
+
+![inline](figures/fermi_surface.png)
