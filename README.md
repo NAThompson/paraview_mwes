@@ -571,7 +571,7 @@ $$
 ## Padua points
 
 $$
-\mathrm{Pad}_{n} := (C_{n+1}^{\mathrm{odd}} \times C_{n+1}^{\mathrm{even}}) \cup (C_{n+1}^{\mathrm{even}} \times C_{n+1}^{\mathrm{odd}})
+\mathrm{Pad}_{n} := (C_{n+1}^{\mathrm{odd}} \times C_{n+2}^{\mathrm{even}}) \cup (C_{n+1}^{\mathrm{even}} \times C_{n+2}^{\mathrm{odd}})
 $$
 
 All points lie on the Lissajous curve 
@@ -632,16 +632,108 @@ vtkm::cont::Field::Association::CELL_SET
 
 ---
 
+## Visualizing big data
 
+The `.vtk` files are nice, intuitive ASCII.
 
+But they quickly overwhelm the Paraview parser, so we need a binary format to move forward.
 
+---
 
+## VTK-m rendering
 
+```cpp
+vtkm::rendering::Actor actor(dataSet.GetCellSet(),
+                             dataSet.GetCoordinateSystem(),
+                             dataSet.GetField("U"));
+vtkm::rendering::Scene scene;
+scene.AddActor(actor);
+vtkm::rendering::MapperRayTracer mapper;
+vtkm::rendering::CanvasRayTracer canvas(1920, 1080);
+vtkm::rendering::View2D view(scene, mapper, canvas);
+view.Initialize();
+view.Paint();
+view.SaveAs("gray_scott_u_" + std::to_string(k) + ".pnm");
+```
 
+---
 
+VTK-m rendering is for sanity checks; it isn't a full-featured renderer like Paraview.
 
+In addition, customizing the graphics in C++ is incredibly painful.
 
+It's an option, but let's move on . . .
 
+---
 
+## ADIOS
 
+ADIOS is a high-performance binary file format with Paraview support.
+
+We'll begin by learning how to do a simple KdV simulation.
+
+---
+
+```cpp
+#include <iostream>
+#include <string>
+#include <cmath>
+#include <vector>
+#include <adios2.h>
+
+double chirp(double t) {
+    double phi0 = 0.7;
+    double k = 1.2;
+    double f = 3.4;
+    return std::sin(phi0 + k*t*t + f*t)*std::exp(-t*t/2);
+}
+
+int main(int argc, char** argv) {
+    size_t n = 256;
+    if (argc > 1) {
+        n = atoi(argv[1]);
+    }
+    double t0 = -3;
+    double tmax = 3;
+    double dt = (tmax-t0)/(n-1);
+    std::vector<double> chirp_vec(n, std::numeric_limits<double>::quiet_NaN());
+    for (size_t i = 0; i < n; ++i) {
+        chirp_vec[i] = chirp(t0 + i*dt);
+    }
+
+    adios2::ADIOS adios;
+    adios2::IO io = adios.DeclareIO("myio");
+    auto chirp_variable = io.DefineVariable<double>("chirp", {n}, {0}, {n}, adios2::ConstantDims);
+
+    io.DefineAttribute<double>("t0", t0);
+    io.DefineAttribute<double>("dt", dt);
+    io.DefineAttribute<std::string>("interpretation", "Equispaced");
+    adios2::Engine bp_file_writer = io.Open("chirp_graph.bp", adios2::Mode::Write);
+    bp_file_writer.Put(chirp_variable, chirp_vec.data());
+    bp_file_writer.Close();
+}
+```
+
+---
+
+## Did we get what we expected?
+
+```
+$ bpls chirp_graph.bp -lav
+File info:
+  of variables:  1
+  of attributes: 3
+  statistics:    Min / Max 
+
+  double   chirp           {256} = -0.696846 / 0.974067
+  double   dt              attr   = 0.0235294
+  string   interpretation  attr   = "Equispaced"
+  double   t0              attr   = -3
+```
+
+---
+
+## NOTES:
+
+- To get a png to render in paraview, turn of "Map Scalars"
 
