@@ -1,4 +1,4 @@
-## Intro to the Paraview Ecosystem
+## Intro to Paraview
 
 ---
 
@@ -43,6 +43,41 @@ paraview/build$ cmake ../ -G Ninja
 paraview/build$ ninja
 paraview/build$ ./bin/paraview
 ```
+
+
+---
+
+## Let's play with an example:
+
+```
+$ git clone https://github.com/NAThompson/paraview_mwes.git
+$ cd paraview_mwes/example_data
+$ ls
+ls
+1dgraph.vtk                          euler_spiral.vtk                     jacobi_theta.vtk                     scalogram.vtk
+daubechies_5_scaling_convergence.csv fermi_surface.vtk                    lorenz.vtk
+```
+
+---
+
+## Open `lorenz.vtk` in Paraview.
+
+- Choose a different colortable
+- Color by time, then by curvature
+- Use the wireframe representation, and change the linewidth
+- Change the background color
+
+
+---
+
+## Open `fermi_surface.vtk` in Paraview
+
+- Volume render the $$E = E(k_x, k_y, k_z)$$ data
+- Extract a Fermi surface from band21 via isocontouring
+- Color the Fermi surface by the gradients
+- Extract another Fermi surface from band23, and display it simultaneously with the Fermi surface from band21.
+- Label the axes as $$k_x, k_y, k_z$$, and color table $$|\nabla E|$$ using $$\LaTeX$$.
+- Visualize on the Looking Glass
 
 
 ---
@@ -663,73 +698,6 @@ VTK-m rendering is for sanity checks; it isn't a full-featured renderer like Par
 In addition, customizing the graphics in C++ is incredibly painful.
 
 It's an option, but let's move on . . .
-
----
-
-## ADIOS
-
-ADIOS is a high-performance binary file format with Paraview support.
-
-We'll begin by learning how to do a simple KdV simulation.
-
----
-
-```cpp
-#include <iostream>
-#include <string>
-#include <cmath>
-#include <vector>
-#include <adios2.h>
-
-double chirp(double t) {
-    double phi0 = 0.7;
-    double k = 1.2;
-    double f = 3.4;
-    return std::sin(phi0 + k*t*t + f*t)*std::exp(-t*t/2);
-}
-
-int main(int argc, char** argv) {
-    size_t n = 256;
-    if (argc > 1) {
-        n = atoi(argv[1]);
-    }
-    double t0 = -3;
-    double tmax = 3;
-    double dt = (tmax-t0)/(n-1);
-    std::vector<double> chirp_vec(n, std::numeric_limits<double>::quiet_NaN());
-    for (size_t i = 0; i < n; ++i) {
-        chirp_vec[i] = chirp(t0 + i*dt);
-    }
-
-    adios2::ADIOS adios;
-    adios2::IO io = adios.DeclareIO("myio");
-    auto chirp_variable = io.DefineVariable<double>("chirp", {n}, {0}, {n}, adios2::ConstantDims);
-
-    io.DefineAttribute<double>("t0", t0);
-    io.DefineAttribute<double>("dt", dt);
-    io.DefineAttribute<std::string>("interpretation", "Equispaced");
-    adios2::Engine bp_file_writer = io.Open("chirp_graph.bp", adios2::Mode::Write);
-    bp_file_writer.Put(chirp_variable, chirp_vec.data());
-    bp_file_writer.Close();
-}
-```
-
----
-
-## Did we get what we expected?
-
-```
-$ bpls chirp_graph.bp -lav
-File info:
-  of variables:  1
-  of attributes: 3
-  statistics:    Min / Max 
-
-  double   chirp           {256} = -0.696846 / 0.974067
-  double   dt              attr   = 0.0235294
-  string   interpretation  attr   = "Equispaced"
-  double   t0              attr   = -3
-```
 
 ---
 
