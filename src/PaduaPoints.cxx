@@ -78,10 +78,10 @@ int main(int argc, char** argv)
     for (int i = 0; i < pds.GetNumberOfPartitions(); ++i)
     {
         auto & p = pds.GetPartition(i);
-        vtkm::io::writer::VTKDataSetWriter writer("padua_" + std::to_string(i+1) + ".vtk");
+        vtkm::io::VTKDataSetWriter writer("padua_" + std::to_string(i+1) + ".vtk");
         writer.WriteDataSet(p);
     }
 
-    vtkm::io::writer::VTKDataSetWriter writer("lissajous.vtk");
+    vtkm::io::VTKDataSetWriter writer("lissajous.vtk");
     writer.WriteDataSet(lissajous(n));
 }

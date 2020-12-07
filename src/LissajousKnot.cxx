@@ -27,6 +27,6 @@ vtkm::cont::DataSet lissajous_knot(int nx, int ny, int nz, double phix, double p
 
 int main(int argc, char** argv)
 {
-    vtkm::io::writer::VTKDataSetWriter writer("lissajous_knot.vtk");
+    vtkm::io::VTKDataSetWriter writer("lissajous_knot.vtk");
     writer.WriteDataSet(lissajous_knot(3,5,7, 0.7, 1.0));
 }

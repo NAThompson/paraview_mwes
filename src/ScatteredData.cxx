@@ -23,6 +23,6 @@ int main()
     }
     
     vtkm::cont::DataSet dataSet = dsb.Create();
-    vtkm::io::writer::VTKDataSetWriter writer("scattered.vtk");
+    vtkm::io::VTKDataSetWriter writer("scattered.vtk");
     writer.WriteDataSet(dataSet);
 }

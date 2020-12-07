@@ -29,7 +29,7 @@ void random_rectilinear(int samples)
 
     vtkm::cont::DataSetBuilderRectilinear dsb;
     vtkm::cont::DataSet ds = dsb.Create(x, y, z);
-    vtkm::io::writer::VTKDataSetWriter writer("random_rectilinear.vtk");
+    vtkm::io::VTKDataSetWriter writer("random_rectilinear.vtk");
     writer.WriteDataSet(ds);
 }
 

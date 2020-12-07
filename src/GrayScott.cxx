@@ -72,10 +72,9 @@ void write_data(Eigen::MatrixXd const & U, Eigen::MatrixXd const & V, int64_t k)
     double dx = gs_params.x_max/gs_params.n;
     vtkm::Vec2f_64 spacing(dx, dx);    
     vtkm::cont::DataSet dataSet = dsb.Create(dims, origin, spacing);
-    vtkm::cont::DataSetFieldAdd dsf;
-    dsf.AddPointField(dataSet, "U", U.data(), U.size());
-    dsf.AddPointField(dataSet, "V", V.data(), V.size());
-    vtkm::io::writer::VTKDataSetWriter writer("gray_scott_" + std::to_string(k) + ".vtk");
+    dataSet.AddPointField("U", U.data(), U.size());
+    dataSet.AddPointField("V", V.data(), V.size());
+    vtkm::io::VTKDataSetWriter writer("gray_scott_" + std::to_string(k) + ".vtk");
     writer.WriteDataSet(dataSet);
 }
 

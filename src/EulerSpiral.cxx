@@ -22,7 +22,7 @@ void write_1d_unstructured(std::vector<std::array<double, 2>> const & spiral_dat
     }
     dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
     vtkm::cont::DataSet dataSet = dsb.Create();
-    vtkm::io::writer::VTKDataSetWriter writer("euler_spiral.vtk");
+    vtkm::io::VTKDataSetWriter writer("euler_spiral.vtk");
     writer.WriteDataSet(dataSet);
 }
 

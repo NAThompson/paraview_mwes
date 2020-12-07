@@ -46,7 +46,6 @@ vtkm::cont::DataSet jacobi_theta_image_dataset(double s_min, double s_max, doubl
     vtkm::Vec2f_64 spacing(dt, ds);
     
     vtkm::cont::DataSet dataSet = dsb.Create(dims, origin, spacing);
-    vtkm::cont::DataSetFieldAdd dsf;
     vtkm::Id nVerts = s_samples*s_samples;
     std::vector<double> r(nVerts);
     std::vector<double> theta(nVerts);
@@ -66,8 +65,8 @@ vtkm::cont::DataSet jacobi_theta_image_dataset(double s_min, double s_max, doubl
         }
     } 
     
-    dsf.AddPointField(dataSet, "r", r.data(), r.size());
-    dsf.AddPointField(dataSet, "θ", theta.data(), theta.size());
+    dataSet.AddPointField("r", r.data(), r.size());
+    dataSet.AddPointField("θ", theta.data(), theta.size());
     return dataSet;
 }
 

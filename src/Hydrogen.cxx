@@ -58,10 +58,9 @@ void write_dataset(int64_t n, int64_t l, int64_t m, int64_t cbrt_samples)
         }
     }
     vtkm::cont::DataSet dataSet = dsb.Create();
-    vtkm::cont::DataSetFieldAdd dsf;
-    dsf.AddPointField(dataSet, "r^2", rsq.data(), rsq.size());
-    dsf.AddPointField(dataSet, "phase", phase.data(), phase.size());
-    vtkm::io::writer::VTKDataSetWriter writer("hydrogen.vtk");
+    dataSet.AddPointField("r^2", rsq.data(), rsq.size());
+    dataSet.AddPointField("phase", phase.data(), phase.size());
+    vtkm::io::VTKDataSetWriter writer("hydrogen.vtk");
     writer.WriteDataSet(dataSet);
 }
 
