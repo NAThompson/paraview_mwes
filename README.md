@@ -47,10 +47,13 @@ paraview/build$ ./bin/paraview
 
 ---
 
-## Let's play with an example:
+## Let's play with some examples
 
 ```
 $ git clone https://github.com/NAThompson/paraview_mwes.git
+$ cd paraview_mwes
+$ git lfs install
+$ git lfs pull
 $ cd paraview_mwes/example_data
 $ ls
 ls
