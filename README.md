@@ -82,6 +82,12 @@ daubechies_5_scaling_convergence.csv fermi_surface.vtk                    lorenz
 
 ---
 
+## Fermi surface
+
+![inline](figures/fermi_surface.png)
+
+---
+
 ## MWE: Compute Gaussian curvature
 
 Idiom: Take a *source*, and apply a *filter*, create a render.
@@ -276,12 +282,11 @@ We might want to look at magnitude, phase, real part, or imaginary part of this 
 
 ```cpp
 vtkm::cont::DataSet dataSet = ...
-vtkm::cont::DataSetFieldAdd dsf;
 // ...
-dsf.AddPointField(dataSet, "r", r.data(), r.size());
-dsf.AddPointField(dataSet, "theta", theta.data(), theta.size());
-dsf.AddPointField(dataSet, "Re(z)", real_part.data(), real_part.size());
-dsf.AddPointField(dataSet, "Im(z)", imag_part.data(), imag_part.size());
+dataSet.AddPointField("r", r.data(), r.size());
+dataSet.AddPointField("theta", theta.data(), theta.size());
+dataSet.AddPointField("Re(z)", real_part.data(), real_part.size());
+dataSet.AddPointField("Im(z)", imag_part.data(), imag_part.size());
 ```
 
 ---
@@ -365,9 +370,8 @@ for (size_t i = 0; i < nodes.size(); ++i) {
 dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
 vtkm::cont::DataSet dataSet;
 dataSet = dsb.Create();
-vtkm::cont::DataSetFieldAdd dsf;
-dsf.AddPointField(dataSet, "y", y.data(), y.size());
-vtkm::io::writer::VTKDataSetWriter writer("fredholm.vtk");
+dataSet.AddPointField("y", y.data(), y.size());
+vtkm::io::VTKDataSetWriter writer("fredholm.vtk");
 writer.WriteDataSet(dataSet);
 ```
 
@@ -417,7 +421,7 @@ for (size_t i = 0; i < spiral_data.size(); ++i) {
 }
 dsb.AddCell(vtkm::CELL_SHAPE_POLY_LINE, ids);
 vtkm::cont::DataSet dataSet = dsb.Create();
-vtkm::io::writer::VTKDataSetWriter writer("euler_spiral.vtk");
+vtkm::io::VTKDataSetWriter writer("euler_spiral.vtk");
 writer.WriteDataSet(dataSet);
 ```
 
@@ -495,10 +499,9 @@ vtkm::Vec2f_64 origin(0, 0);
 double dx = gs_params.x_max/n;
 vtkm::Vec2f_64 spacing(dx, dx);
 vtkm::cont::DataSet dataSet = dsb.Create(dims, origin, spacing);
-vtkm::cont::DataSetFieldAdd dsf;
-dsf.AddPointField(dataSet, "U", U.data(), U.size());
-dsf.AddPointField(dataSet, "V", V.data(), V.size());
-vtkm::io::writer::VTKDataSetWriter writer("gray_scott_" + std::to_string(step_index) + ".vtk");
+dataSet.AddPointField("U", U.data(), U.size());
+dataSet.AddPointField("V", V.data(), V.size());
+vtkm::io::VTKDataSetWriter writer("gray_scott_" + std::to_string(step_index) + ".vtk");
 writer.WriteDataSet(dataSet);
 ```
 
@@ -535,7 +538,7 @@ for (size_t i = 0; i < 500; ++i)
 }
 
 vtkm::cont::DataSet dataSet = dsb.Create();
-vtkm::io::writer::VTKDataSetWriter writer("scattered.vtk");
+vtkm::io::VTKDataSetWriter writer("scattered.vtk");
 writer.WriteDataSet(dataSet);
 ```
 
@@ -585,7 +588,7 @@ std::sort(y.begin(), y.end());
 
 vtkm::cont::DataSetBuilderRectilinear dsb;
 vtkm::cont::DataSet ds = dsb.Create(x, y, z);
-vtkm::io::writer::VTKDataSetWriter writer("random_rectilinear.vtk");
+vtkm::io::VTKDataSetWriter writer("random_rectilinear.vtk");
 writer.WriteDataSet(ds);
 ```
 
@@ -641,7 +644,7 @@ pds.AppendPartitions({ds1, ds2});
 for (int i = 0; i < pds.GetNumberOfPartitions(); ++i)
 {
   auto & p = pds.GetPartition(i);
-  vtkm::io::writer::VTKDataSetWriter writer("padua_" + std::to_string(i+1) + ".vtk");
+  vtkm::io::VTKDataSetWriter writer("padua_" + std::to_string(i+1) + ".vtk");
   writer.WriteDataSet(p);
 }
               
@@ -696,17 +699,3 @@ view.SaveAs("gray_scott_u_" + std::to_string(k) + ".pnm");
 VTK-m rendering is for sanity checks; it isn't a full-featured renderer like Paraview.
 
 In addition, customizing the graphics in C++ is incredibly painful.
-
-It's an option, but let's move on . . .
-
----
-
-## NOTES:
-
-- To get a png to render in paraview, turn of "Map Scalars"
-
----
-
-## Fermi surface
-
-![inline](figures/fermi_surface.png)

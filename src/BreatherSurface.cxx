@@ -50,8 +50,6 @@ void write_dataset(int64_t u_samples, int64_t v_samples)
         }
     }
     vtkm::cont::DataSet dataSet = dsb.Create();
-    std::vector<double> val(u_samples*v_samples, 1.0);
-    dataSet.AddPointField("val", val.data(), val.size());
 
     vtkm::io::VTKDataSetWriter writer("breather_surface.vtk");
     writer.WriteDataSet(dataSet);
@@ -59,5 +57,5 @@ void write_dataset(int64_t u_samples, int64_t v_samples)
 
 int main()
 {
-    write_dataset(512, 512);
+    write_dataset(64, 64);
 }
