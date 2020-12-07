@@ -88,6 +88,17 @@ daubechies_5_scaling_convergence.csv fermi_surface.vtk                    lorenz
 
 ---
 
+## Breather Surface
+
+- Triangulate unstructured points
+- Use raytracing to improve image quality
+
+---
+
+
+
+---
+
 ## MWE: Compute Gaussian curvature
 
 Idiom: Take a *source*, and apply a *filter*, create a render.

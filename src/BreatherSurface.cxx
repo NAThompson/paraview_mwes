@@ -57,5 +57,5 @@ void write_dataset(int64_t u_samples, int64_t v_samples)
 
 int main()
 {
-    write_dataset(64, 64);
+    write_dataset(96, 96);
 }
