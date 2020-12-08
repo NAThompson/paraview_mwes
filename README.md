@@ -1,5 +1,7 @@
 ## Intro to Paraview
 
+![inline](figures/logo.svg)
+
 ---
 
 ## What is Paraview?
@@ -98,6 +100,9 @@ daubechies_5_scaling_convergence.csv fermi_surface.vtk                    lorenz
 
 ---
 
+## Breather Surface
+
+![inline](figures/breather_surface.png)
 
 
 ---
